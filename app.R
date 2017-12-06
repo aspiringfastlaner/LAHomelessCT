@@ -15,7 +15,7 @@ library(rgeos)
 library(maptools)
 library(ggmap)
 
-#rsconnect::deployApp('C:\\Users\\Fang\\Desktop\\USC MSBAN\\Fall 2017\\DSO 545\\Homeless Project\\Shiny V4')
+#rsconnect::deployApp('C:\\Users\\Fang\\Desktop\\USC MSBAN\\Fall 2017\\DSO 545\\Homeless Project\\LAHomelessCT')
 
 ############################ Data Cleaning for Map Tab
 hcdata = read.csv("data/homelessagg.csv") %>%
@@ -167,7 +167,11 @@ ui = navbarPage(
   tabPanel("Appendix and Reccommendations",
     fluidPage(
       mainPanel(
-        includeHTML("appendix.html")
+        includeHTML("appendix.html"),
+        img(src='http://via.placeholder.com/350x150'),
+        HTML('</br>'),
+        img(src='http://via.placeholder.com/350x150'),
+        HTML('</br>')
       )
     )
   ),
@@ -228,146 +232,12 @@ ui = navbarPage(
                plotOutput("heatmap"),
                HTML('</br>')
              )
-           )), 
-  tabPanel("Homeless Comparisons",
-           fluidPage(
-             
-             sidebarPanel(width = 3,
-               h5("Homeless View: Tract or Communities"),
-               
-               selectInput("splitchoice2", "View By",
-                           splitvars, selected = "communities",
-                           width = '100%'),
-               h5("Homeless Population Filters"),
-               
-               selectInput("hchoice2", "HC Population Filters", 
-                           hcvars, selected = "totHomeless",
-                           width = '100%')),
-             
-             mainPanel(splitLayout(cellWidths = c("50%", "50%"), 
-                                   
-                             plotOutput("plotgraph2"), 
-                             plotOutput("plotgraph1"))
-               )
-             )
-           )
+           ))
 )
 
 
 server = function(input, output, session){
   
-  ########### R Code for Final Page
-  
-  
-  
-  output$plotgraph1 = renderPlot({height = 500
-    
-    if (input$splitchoice2 == "communities") {
-      LA_new = unionSpatialPolygons(labound, labound$Community_Name,
-                                    ID = labound@data$Community_Name)
-      newdata2017 = hcdata %>%
-        group_by(Community_Name) %>%
-        summarise(totHomeless2017 = sum(totHomeless2017),
-                  totUnshelt2017 = sum(totUnshelt2017),
-                  totShelt2017 = sum(totShelt2017),
-                  landarea = sum(Land.Area)) %>%
-        mutate(density2017 = totHomeless2017/landarea)
-      colnames(newdata2017)[1] = 'id'
-      
-    } else {
-      LA_new = unionSpatialPolygons(labound, labound$tract,
-                                    ID = labound@data$tract)
-      newdata2017 = hcdata %>%
-        select(tract, totHomeless2017, totUnshelt2017,
-               totShelt2017, density2017)
-      newdata2017$tract = as.character(newdata2017$tract)
-      colnames(newdata2017)[1] = 'id'
-    }
-    
-    LA_new.df <- fortify(LA_new)
-    
-    LA_new.df = full_join(LA_new.df, newdata2017, by = "id")
-    
-    fillpar = switch(input$hchoice2,
-                     "totHomeless" = LA_new.df$totHomeless2017,
-                     "totUnshelt" = LA_new.df$totUnshelt2017,
-                     "totShelt" = LA_new.df$totShelt2017,
-                     "density" = LA_new.df$density2017)
-    plotlegend = switch(input$hchoice2,
-                       "totHomeless" = "Total Homeless Count",
-                       "totUnshelt" = "Total Unsheltered Count",
-                       "totShelt" = "Total Sheltered Count",
-                       "density" = "Density")
-    
-    ggplot(LA_new.df,
-           aes(x = long,
-               y = lat,
-               group = group,
-               fill = fillpar)) +
-      geom_polygon(color = "black") +
-      scale_fill_gradient(low = "white", high = "red") +
-      theme_void() +
-      ggtitle("2017 Distribution") +
-      theme(plot.title = element_text(size=22,hjust = 0.5)) +
-      labs(fill = plotlegend)
-    
-    
-  })
-  
-  output$plotgraph2 = renderPlot({height = 500
-    
-    if (input$splitchoice2 == "communities") {
-      LA_new = unionSpatialPolygons(labound, labound$Community_Name,
-                                    ID = labound@data$Community_Name)
-      
-      newdata2016 = hcdata %>%
-        group_by(Community_Name) %>%
-        summarise(totHomeless2016 = sum(totHomeless2016),
-                  totUnshelt2016 = sum(totUnshelt2016),
-                  totShelt2016 = sum(totShelt2016),
-                  landarea = sum(Land.Area)) %>%
-        mutate(density2016 = totHomeless2016/landarea)
-      colnames(newdata2016)[1] = 'id'
-    } else {
-      LA_new = unionSpatialPolygons(labound, labound$tract,
-                                    ID = labound@data$tract)
-      
-      newdata2016 = hcdata %>%
-        select(tract, totHomeless2016, totUnshelt2016,
-               totShelt2016, density2016)
-      newdata2016$tract = as.character(newdata2016$tract)
-      colnames(newdata2016)[1] = 'id'
-    }
-    
-    LA_new.df <- fortify(LA_new)
-    
-    LA_new.df = full_join(LA_new.df, newdata2016, by = "id")
-    
-    fillpar = switch(input$hchoice2,
-                     "totHomeless" = LA_new.df$totHomeless2016,
-                     "totUnshelt" = LA_new.df$totUnshelt2016,
-                     "totShelt" = LA_new.df$totShelt2016,
-                     "density" = LA_new.df$density2016)
-    plotlegend = switch(input$hchoice2,
-                        "totHomeless" = "Total Homeless Count",
-                        "totUnshelt" = "Total Unsheltered Count",
-                        "totShelt" = "Total Sheltered Count",
-                        "density" = "Density")
-    
-    ggplot(LA_new.df,
-           aes(x = long,
-               y = lat,
-               group = group,
-               fill = fillpar)) +
-      geom_polygon(color = "black") +
-      scale_fill_gradient(low = "white", high = "red") +
-      theme_void() +
-      ggtitle("2016 Distribution") +
-      theme(plot.title = element_text(size=22,hjust = 0.5)) +
-      labs(fill = plotlegend)
-    
-    
-  })
   
   ########### R Code for Heatmap
   # summary statistics
@@ -546,10 +416,12 @@ server = function(input, output, session){
       totals = hcdata$totHomeless2017
       totalsh = hcdata$totShelt2017
       totalunsh = hcdata$totUnshelt2017
+      density = hcdata$density2017
     } else {
       totals = hcdata$totHomeless2016
       totalsh = hcdata$totShelt2016
       totalunsh = hcdata$totUnshelt2016
+      density = hcdata$density2016
     }
     
     if (input$yearchoice == "2017") {
@@ -604,7 +476,9 @@ server = function(input, output, session){
                                 "<dd>","Total Sheltered",
                                 round(as.numeric(totalsh)),"</dd>",
                                 "<dd>","Total Unsheltered",
-                                round(as.numeric(totalunsh)),"</dd>"),
+                                round(as.numeric(totalunsh)),"</dd>",
+                                "<dd>","Density",
+                                round(as.numeric(density)),"</dd>"),
                   group = "Homeless") %>%
       addLegend(pal = pal, values = ~density, opacity = 0.7, title = NULL,
                 position = "bottomright") %>%
