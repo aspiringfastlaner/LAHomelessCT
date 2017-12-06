@@ -167,11 +167,7 @@ ui = navbarPage(
   tabPanel("Appendix and Reccommendations",
     fluidPage(
       mainPanel(
-        includeHTML("appendix.html"),
-        img(src='http://via.placeholder.com/350x150'),
-        HTML('</br>'),
-        img(src='http://via.placeholder.com/350x150'),
-        HTML('</br>')
+        includeHTML("appendix.html")
       )
     )
   ),
