@@ -236,7 +236,7 @@ ui = navbarPage(
                h5("Homeless View: Tract or Communities"),
                
                selectInput("splitchoice2", "View By",
-                           splitvars, selected = "tract",
+                           splitvars, selected = "communities",
                            width = '100%'),
                h5("Homeless Population Filters"),
                
@@ -245,8 +245,9 @@ ui = navbarPage(
                            width = '100%')),
              
              mainPanel(splitLayout(cellWidths = c("50%", "50%"), 
-                             plotOutput("plotgraph1"), 
-                             plotOutput("plotgraph2"))
+                                   
+                             plotOutput("plotgraph2"), 
+                             plotOutput("plotgraph1"))
                )
              )
            )
@@ -259,7 +260,7 @@ server = function(input, output, session){
   
   
   
-  output$plotgraph1 = renderPlot({
+  output$plotgraph1 = renderPlot({height = 500
     
     if (input$splitchoice2 == "communities") {
       LA_new = unionSpatialPolygons(labound, labound$Community_Name,
@@ -313,7 +314,7 @@ server = function(input, output, session){
     
   })
   
-  output$plotgraph2 = renderPlot({
+  output$plotgraph2 = renderPlot({height = 500
     
     if (input$splitchoice2 == "communities") {
       LA_new = unionSpatialPolygons(labound, labound$Community_Name,
@@ -402,7 +403,7 @@ server = function(input, output, session){
     }
   })
   
-  output$heatmap <- renderPlot({
+  output$heatmap <- renderPlot({height = 500
     
     crimeheattitle = paste("Number of Crimes by Day and Time - ", input$cvh)
     
@@ -647,12 +648,11 @@ server = function(input, output, session){
       # Layer Controls
       addLayersControl(
         overlayGroups = c("Shelters","Homeless","Crimes", "311 Calls"),
-        options = layersControlOptions(collapsed = TRUE),
+        options = layersControlOptions(collapsed = FALSE),
         position = "bottomright"
       ) %>% 
       hideGroup("Shelters") %>%
-      hideGroup("Homeless") %>%
-      hideGroup("Crimes")
+      hideGroup("311 Calls")
   })
   
 }
